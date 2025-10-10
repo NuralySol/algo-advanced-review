@@ -321,10 +321,298 @@ const findInRotatedArr = (arr, k) => {
 }
 
 console.log(findInRotatedArr([4, 5, 6, 7, 0, 1, 2], 0))
-// - [3Sum](https://leetcode.com/problems/3sum/)  
-// - [Container With Most Water](https://leetcode.com/problems/container-with-most-water/)  
-// - [Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/)  
-// - [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)  
-// - [Merge Intervals](https://leetcode.com/problems/merge-intervals/)  
-// - [Insert Interval](https://leetcode.com/problems/insert-interval/)  
 
+//! 9) - [3Sum](https://leetcode.com/problems/3sum/) 
+// Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.
+// Input: nums = [-1,0,1,2,-1,-4]
+// Output: [[-1,-1,2],[-1,0,1]]
+// Explanation: 
+// nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0.
+// nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0.
+// nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0.
+// The distinct triplets are [-1,0,1] and [-1,-1,2].
+// Notice that the order of the output and the order of the triplets does not matter.
+
+const getThreeSum = (arr) => {
+    //* strict validation of the array argh value input:
+    if (!Array.isArray(arr)) throw new TypeError('arr argh must be an array object!');
+    if (!arr.every(item => typeof item === 'number' && isFinite(item))) throw new TypeError('every element of the arr argh must be a finite number');
+    if (arr.length < 3) throw new RangeError('arr must contain at least 3 elements within range');
+
+    // array holder of result:
+    let result = []
+    //* Main logic of the function getThreeSum:
+    // Step1: is to sort the array in place:
+    arr.sort((a, b) => a - b);
+
+    // Step2: Loop through each number as the fixed element
+    for (let i = 0; i < arr.length - 2; i++) {
+        // skip duplicates values for the first number:
+        if (i > 0 && arr[i] === arr[i - 1]) continue;
+
+        let left = i + 1;
+        let right = arr.length - 1;
+
+        // Step3: Use the two-pointer technique:
+        while (left < right) {
+            let total = arr[i] + arr[left] + arr[right];
+
+            if (total === 0) {
+                result.push([arr[i], arr[left], arr[right]]);
+
+                // skip duplicates for left and right:
+                while (left < right && arr[left] === arr[left + 1]) {
+                    left = left + 1;
+                }
+                while (left < right && arr[right] === arr[right - 1]) {
+                    right = right - 1;
+                }
+                // move the both pointers inwards:
+                left = left + 1;
+                right = right - 1;
+            } else if (total < 0) {
+                // need a bigger sum -> move left forward:
+                left = left + 1;
+            } else {
+                // need a smaller sum -> move right backward:
+                right = right - 1;
+            }
+        }
+    }
+    // return the finished result:
+    return result;
+}
+
+// invoke the function with the expected output of [-1,0,1] and [-1,-1,2].
+console.log(getThreeSum([-1, 0, 1, 2, -1, -4]));
+
+//! 10) - [Container With Most Water](https://leetcode.com/problems/container-with-most-water/)  
+// You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]).
+// Input: height = [1,8,6,2,5,4,8,3,7]
+// Output: 49
+// Explanation: The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.
+
+// NOTE this algorithm uses two pointer technique in its approach to solve this challenge:
+const mostWaterMaxArea = (arr) => {
+    // strict validation of the array argh:
+    if (!Array.isArray(arr)) throw new TypeError('arr argh must be an array object!');
+    if (!arr.every(item => typeof item === 'number' && isFinite(item))) throw new TypeError('every element of arr argh must be a finite number');
+    if (arr.length < 2) throw new RangeError('arr must contain more than 2 elements');
+
+    // main logic of the function, with the two-pointer technique approach!
+    let left = 0;
+    let right = arr.length - 1;
+    let best = 0;
+
+    // while conditional function of left < right:
+    while (left < right) {
+        let width = right - left;
+        let height = Math.min(arr[left], arr[right]);
+        let area = width * height;
+        best = Math.max(best, area);
+
+        // move the pointer at the shorter line inward:
+        if (arr[left] < arr[right]) {
+            left = left + 1;
+        } else {
+            right = right - 1;
+        }
+    }
+    // return the best so far!
+    return best;
+}
+
+console.log(mostWaterMaxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]));
+
+//! 11) - [Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/)  
+// Given n non - negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.
+// Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
+// Output: 6
+// Explanation: The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.
+
+// NOTE Two pointer is one of the approaches with space optimization of O(1), idea being water at i min(max_left, max_rigth) - heigth[i] if positive: 
+// Track running max left and max right while shrinking the window from both ends:
+const trapRainWater = (arr) => {
+    //* strict validation of the arr argh:
+    if (!Array.isArray(arr)) throw new TypeError('arr argh must be an array object');
+    if (!arr.every(item => typeof item === 'number' && isFinite(item))) throw new RangeError('every element of the arr argh must be a finite number');
+    if (arr.length < 3) throw new RangeError('arr argh must contain at least 3 elements within the argument range');
+
+    // main logic of algorithm using the Two Pointer approach:
+    let left = 0;
+    let right = arr.length - 1;
+    let leftMax = 0;
+    let rightMax = 0;
+    let water = 0;
+
+    // while conditional loop:
+    while (left <= right) {
+        if (arr[left] <= arr[right]) {
+            if (arr[left] >= leftMax) {
+                leftMax = arr[left];
+            } else {
+                water = water + (leftMax - arr[left]);
+            }
+            left = left + 1;
+        } else {
+            if (arr[right] >= rightMax) {
+                rightMax = arr[right];
+            } else {
+                water = water + (rightMax - arr[right])
+            }
+            right = right - 1;
+        }
+    }
+    return water;
+}
+
+console.log(trapRainWater([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]));
+
+//! 12) - [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)  
+// You are given an array of integers nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position.
+// Return the max sliding window.
+// Input: nums = [1,3,-1,-3,5,3,6,7], k = 3
+// Output: [3,3,5,5,6,7]
+// Explanation: 
+// Window position                Max
+// ---------------               -----
+// [1  3  -1] -3  5  3  6  7       3
+//  1 [3  -1  -3] 5  3  6  7       3
+//  1  3 [-1  -3  5] 3  6  7       5
+//  1  3  -1 [-3  5  3] 6  7       5
+//  1  3  -1  -3 [5  3  6] 7       6
+//  1  3  -1  -3  5 [3  6  7]      7
+
+// NOTE Optimal approach is Time Complexity, O(n) Space is O(k) using the Deque, we maintain a monotonic decreasing deque(stores indices). The front always holds the index of the maximum element in the current window.
+const maxSlidingWindow = (arr, k) => {
+    //* strict validation of the arr argh value and k argh value:
+    if (!Array.isArray(arr)) throw new TypeError('arr argh must be an array!');
+    if (!arr.every(item => typeof item === 'number' && isFinite(item))) throw new RangeError('every element of arr argh must a finite number value');
+    if (arr.length < 3) throw new RangeError('arr must contain more than 3 elements');
+    if (typeof (k) !== 'number') throw new TypeError('k argh value must be a number value');
+
+    //^ main logic of the algorithm:
+    const deque = []; // will store indices, Not the values:
+    const result = []; // an empty array holder:
+
+    // loop through n-length of the array argh input, to capture values:
+    for (let i = 0; i < arr.length; i++) {
+        //* step1: remove the indices out of the window (left side)
+        while (deque.length > 0 && deque[0] <= i - k) {
+            deque.shift()
+        }
+        //* step2: remove smaller elements from right, because they will never be the max if a bigger one exists:
+        while (deque.length > 0 && arr[deque[deque.length - 1]] < arr[i]) {
+            deque.pop()
+        }
+        //* step3: add current index to the deque:
+        deque.push(i);
+        //* step4: the window is 'ready' once i >= k - 1:
+        if (i >= k - 1) {
+            result.push(arr[deque[0]])
+        }
+    }
+    return result;
+}
+
+console.log(maxSlidingWindow([1, 3, -1, -3, 5, 3, 6, 7], 3));
+
+//! 13) - [Merge Intervals](https://leetcode.com/problems/merge-intervals/)  
+// Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
+// Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
+// Output: [[1,6],[8,10],[15,18]]
+// Explanation: Since intervals [1,3] and [2,6] overlap, merge them into [1,6].
+//^ Overlap rule (inclusive endpoints), two intervals [aStart, aEnd] overlap iff bStart <= aEnd: Time: O(n log n) (sort dominates)
+// Space: O(n) (output; in-place tweak possible)
+
+// NOTE helper function of the valid matrix, in order to validate the matrix structres:
+function isValidIntervals(matrix) {
+    if (!Array.isArray(matrix)) return false;
+    // allow empty list of intervals
+    if (matrix.length === 0) return true;
+
+    // every row must be a 2-tuple of finite numbers
+    return matrix.every(
+        (row) =>
+            Array.isArray(row) &&
+            row.length === 2 &&
+            Number.isFinite(row[0]) &&
+            Number.isFinite(row[1])
+    );
+}
+// -- End of helper function for the validatio of the matrix structure -- //
+
+//* argh input is matrix structure (intervals):
+const mergeIntervals = (intervals) => {
+    if (!isValidIntervals(intervals)) {
+        throw new TypeError('intervals must be an array of [number, number]');
+    }
+    if (intervals.length === 0) return [];
+
+    // (optional) normalize so start <= end
+    // const arr = intervals.map(([s,e]) => (s <= e ? [s,e] : [e,s]));
+    // const sorted = arr.sort((a,b) => a[0] - b[0]);
+
+    const sorted = intervals.slice().sort((a, b) => a[0] - b[0]);
+
+    const merged = [];
+    let [curStart, curEnd] = sorted[0];
+
+    for (let i = 1; i < sorted.length; i++) {
+        const [s, e] = sorted[i];
+        // CLOSED intervals overlap if nextStart <= currentEnd
+        if (s <= curEnd) {
+            curEnd = Math.max(curEnd, e);
+        } else {
+            merged.push([curStart, curEnd]);
+            [curStart, curEnd] = [s, e];
+        }
+    }
+    // final block:
+    merged.push([curStart, curEnd]);
+    return merged;
+};
+
+
+console.log(mergeIntervals([[1, 3], [2, 6], [8, 10], [15, 18]]));
+
+//! 14) - [Insert Interval](https://leetcode.com/problems/insert-interval/)  
+// You are given a list of non-overlapping intervals sorted by start time, and a new interval.
+// Insert the new interval into the list and merge any overlaps.
+// intervals = [[1,3],[6,9]]
+// newInterval = [2,5]
+// Output → [[1,5],[6,9]]
+
+const insertIntervals = (intervals, newInterval) => {
+    // helper variables:
+    let result = [];
+    let i = 0;
+    let n = intervals.length;
+
+    let newStart = newInterval[0];
+    let newEnd = newInterval[1];
+
+    // step1: add all intervals that end before newInterval starts:
+    while (i < n && intervals[i][1] < newStart) {
+        result.push(intervals[i]);
+        i++;
+    }
+
+    // step2: merge all overlapping intervals with newInterval:
+    while (i < n && intervals[i][0] <= newEnd) {
+        newStart = Math.min(newStart, intervals[i][0]);
+        newEnd = Math.max(newEnd, intervals[i][1]);
+        i++;
+    }
+    //* push the merged interval:
+    result.push([newStart, newEnd]);
+
+    // step3: add the remaining intervals:
+    while (i < n) {
+        result.push(intervals[i])
+        i++;
+    }
+    return result;
+}
+
+console.log(insertIntervals([[1, 3], [6, 9]], [2, 5]));
