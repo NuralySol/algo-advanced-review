@@ -120,9 +120,15 @@ const getCoinChange = (arr, k) => {
 
 console.log(getCoinChange([1, 2, 5], 11)) // output: 3
 
+// TODO do the rest of problems, with the DP in mind!
 //* Top - Down Dynamic Programming:
 const getCoinChangeTP = (coins, amount) => {
+    let memo = new Map(); // cache for subproblem:
 
+    //^ Depth-First-Search remaining amount, helper function.
+    function dfs(rem) {
+        
+    }
 }
 
 console.log(getCoinChangeTP([1, 2, 5], 11));
