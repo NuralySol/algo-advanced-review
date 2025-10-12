@@ -120,15 +120,208 @@ const getCoinChange = (arr, k) => {
 
 console.log(getCoinChange([1, 2, 5], 11)) // output: 3
 
-// TODO do the rest of problems, with the DP in mind!
 //* Top - Down Dynamic Programming:
 const getCoinChangeTP = (coins, amount) => {
     let memo = new Map(); // cache for subproblem:
 
     //^ Depth-First-Search remaining amount, helper function.
     function dfs(rem) {
-        
+        // rest of the logic goes in here for the dfs solution:
+        if (rem === 0) return 0;
+        if (rem < 0) return Infinity;
+        if (memo.has(rem)) return memo.get(rem);
+
+        let minCoins = Infinity;
+
+        // loop of the coin to count the coins:
+        for (let coin of coins) {
+            let result = dfs(rem - coin)
+            if (result !== Infinity) {
+                minCoins = Math.min(minCoins, 1 + result);
+            }
+        }
+        memo.set(rem, minCoins)
+        return memo.get(rem);
     }
+    const ans = dfs(amount);
+    // ternary return:
+    return ans === Infinity ? -1 : ans;
 }
 
 console.log(getCoinChangeTP([1, 2, 5], 11));
+
+//! 3) - [Longest Increasing Subsequence](https://leetcode.com/problems/longest-increasing-subsequence/)
+// Given an integer array nums, return the length of the longest strictly increasing subsequence.
+// Input: nums = [10,9,2,5,3,7,101,18]
+// Output: 4
+// Explanation: The longest increasing subsequence is [2,3,7,101], therefore the length is 4.
+
+//* reconstruct one LIS: 
+const increaseSubsequenceLIS = (arr) => {
+    //* strict validation of the array argh:
+    if (!Array.isArray(arr)) throw new TypeError('arr argh must be an array object!');
+    if (!arr.every(item => typeof item === 'number' && isFinite(item))) throw new RangeError('every element of the array must a finite number value');
+
+    // init the helper vars:
+    let n = arr.length;
+    let dp = new Array(n).fill(1);
+    let prev = new Array(n).fill(-1);
+
+    let bestLen = 1;
+    let bestEnd = 0;
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < i; j++) {
+            if (arr[j] < arr[i] && dp[j] + 1 > dp[i]) {
+                dp[i] = dp[j] + 1;
+                prev[i] = j;
+            }
+        } if (dp[i] > bestLen) {
+            bestLen = dp[i];
+            bestEnd = i;
+        }
+    }
+
+    //* backtrack:
+    let seq = [];
+    let k = bestEnd;
+    while (k !== -1) {
+        seq.push(arr[k])
+        k = prev[k]
+    }
+    seq.reverse();
+    return seq;
+}
+
+console.log(increaseSubsequenceLIS([10, 9, 2, 5, 3, 7, 101, 18]));
+
+//* O(n log n) LIS with sequence reconstruction (strictly increasing):
+// NOTE this computes a strictly increasing LIS (<) 
+// for non-decreasing LIS, change the binary search to find the first index tails[idx] > x (i.e. replace >= with >)
+const lisFast = (arr) => {
+    // light validation of the input arr argh:
+    if (!Array.isArray(arr)) throw new TypeError('arr must be an array object!');
+    if (!arr.every(item => typeof item === 'number' && Number.isFinite(item))) {
+        throw new RangeError('every element of the arr argh must be a finite number');
+    }
+    if (arr.length === 0) return { length: 0, seq: [] };
+    if (arr.length === 1) return { length: 1, seq: [arr[0]] };
+
+    const n = arr.length;
+    // tails[len-1] = smallest tail value of an inc. subseq of length len
+    // index in arr of that tail
+    // predecessor indices for reconstruction
+    const tails = [];
+    const tailsIdx = [];
+    const prev = new Array(n).fill(-1);
+
+    for (let i = 0; i < n; i++) {
+        const x = arr[i];
+
+        // binary search: first pos with tails[pos] >= x (lower bound):
+        let l = 0;
+        let r = tails.length;
+        while (l < r) {
+            // NOTE bitwise operation >> CHECK for later review:
+            const m = (l + r) >> 1;
+            if (tails[m] >= x) r = m; else l = m + 1;
+        }
+        const pos = l;
+
+        // place/update x at pos:
+        if (pos === tails.length) {
+            tails.push(x);
+            tailsIdx.push(i);
+        } else {
+            tails[pos] = x;
+            tailsIdx[pos] = i;
+        }
+
+        // link predecessor (for pos > 0, predecessor is the tail index of length pos):
+        prev[i] = (pos > 0) ? tailsIdx[pos - 1] : -1;
+    };
+
+    // reconstruct one LIS:
+    const length = tails.length;
+    const seq = [];
+    let k = tailsIdx[length - 1];
+    while (k !== - 1) {
+        seq.push(arr[k]);
+        k = prev[k];
+    }
+    seq.reverse();
+
+    return { length, seq };
+}
+
+// expected return: { length: 4, seq: [2,5,7,101] } 
+console.log(lisFast([10, 9, 2, 5, 3, 7, 101, 18]));
+
+//! 4)- [Longest Common Subsequence](https://leetcode.com/problems/longest-common-subsequence/)  
+// Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.
+// A subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.
+// For example, "ace" is a subsequence of "abcde".
+// A common subsequence of two strings is a subsequence that is common to both strings.
+// Input: text1 = "abcde", text2 = "ace" 
+// Output: 3  
+// Explanation: The longest common subsequence is "ace" and its length is 3.
+// NOTE snippet how to create a matrix 
+//^ let dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+
+
+//* This solution is Bottom-Up tabulation which is O(m x n):
+const longestCommonSubsequence = (text1, text2) => {
+    let m = text1.length;
+    let n = text2.length;
+    //^ this Array prototype takes in Array prototype and an anon function ()=>: 
+    let dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (text1[i - 1] === text2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+console.log(longestCommonSubsequence('abcde', 'ace'));
+
+//* reconstruct the actual LCS seqeunce:
+//^ let dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+const lcsSequence = (text1, text2) => {
+    const m = text1.length, n = text2.length;
+
+    // 1) Build DP table: dp[i][j] = LCS length of text1[0..i-1], text2[0..j-1]
+    const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (text1[i - 1] === text2[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+            else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+    }
+
+    // 2) Backtrack from bottom-right to reconstruct one LCS
+    const seq = [];
+    let i = m;
+    let j = n;
+    while (i > 0 && j > 0) {
+        if (text1[i - 1] === text2[j - 1]) {
+            seq.push(text1[i - 1]);
+            i--; j--;
+        } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+            i--;
+        } else {
+            j--;
+        }
+    }
+    seq.reverse();
+    return seq.join('');
+}
+
+console.log(lcsSequence('abcde', 'ace'))
+
+// TODO solve the lcsSequence with the memoization since it also includes the implementation of the Depth-First-Search approach, B) Reconstruct one LCS using the memoized lengths
