@@ -324,4 +324,72 @@ const lcsSequence = (text1, text2) => {
 
 console.log(lcsSequence('abcde', 'ace'))
 
-// TODO solve the lcsSequence with the memoization since it also includes the implementation of the Depth-First-Search approach, B) Reconstruct one LCS using the memoized lengths
+// Memoization appraoch in Solving the lscSequence problem: which is a Top-Down appraoch,
+// 1. Write a recursive function that expresses the problem in terms if smaller subproblems,
+// 2. and cache (memoize) each result so you never recompute it twice.
+
+//* this function will be recursive and will memoization approach in solving the problem:
+const lcsLengthMemo = (text1, text2) => {
+    // some validation of the input arghs:
+    if (typeof (text1) !== 'string') throw new TypeError('text1 must be a string argh');
+    if (typeof (text2) !== 'string') throw new TypeError('text2 must be a string argh');
+
+    // init the m and n to the length property of each argh values of the strings:
+    let m = text1.length;
+    let n = text2.length;
+
+    const memo = Array.from({length: m + 1}, ()=> Array(n + 1).fill(-1))
+
+    // helper function of dfs
+    function dfs(i, j) {
+        if (i === 0 || j === 0) return 0;
+        if (memo[i][j] !== - 1) return memo[i][j]
+
+        if (text1[i - 1] === text2[j - 1]) {
+            memo[i][j] = 1 + dfs(i - 1, j - 1);
+        } else {
+            memo[i][j] = Math.max(dfs(i - 1, j), dfs(i, j - 1));
+        }
+        return memo[i][j]
+    }
+    // return the function:
+    return dfs(m, n)
+}
+
+console.log(lcsLengthMemo('abcde', 'ace'));
+
+//! 5)- [Word Break](https://leetcode.com/problems/word-break/)  
+// Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
+// Note that the same word in the dictionary may be reused multiple times in the segmentation.
+// Input: s = "leetcode", wordDict = ["leet","code"]
+// Output: true
+// Explanation: Return true because "leetcode" can be segmented as "leet code".
+const wordBreak = (str, wordDict) => {
+    // some validation of the input arghs:
+    if (typeof (str) !== 'string') throw new TypeError('str must be a string argh');
+    if (!Array.isArray(wordDict)) throw new TypeError('wordDict must be an array object');
+    if (!wordDict.every(item => typeof item === 'string')) throw new TypeError('every element of the wordDict argh must be a string');
+
+    // main logic of the function:
+    let n = str.length;
+    // dp prototype full of false values for the element values:
+    let dp = new Array(n + 1).fill(false);
+    dp[0] = true // reassign the first index[0] to a true element value:
+
+    // loop that skips the first element address index value:
+    for (let i = 1; i <= n; i++) {
+        for (let word of wordDict) {
+            let len = word.length;
+            if (i >= len && dp[i - len] === true && str.slice(i - len, i) === word) {
+                dp[i] = true;
+                break;
+            }
+        }
+    }
+    return dp[n]
+}
+
+//* expetected return is true since leetcode can be broken down into 'leet' and 'code'
+console.log(wordBreak('leetcode', ['leet', 'code']));
+
+// TODO  Top-Down recursive + memoized version next (which solves the same problem differently), finish the above wordBreak the above problem:
