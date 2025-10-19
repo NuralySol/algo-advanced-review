@@ -159,10 +159,68 @@ console.log(longestPalManachers('babad'));
 // Given two strings s and t, return true if t is an anagram of s, and false otherwise.
 // Input: s = "anagram", t = "nagaram"
 // Output: true
-// TODO do the Valid Anagrams code algorithm:
 
+//* the expected return type is a boolean value of true and or false:
+const validAnagram = (str1, str2) => {
+    // some validation of the str1 and str2 input arghs:
+    if (typeof (str1) !== 'string') throw new TypeError('Please input a valid string object argh');  
+    if (typeof (str2) !== 'string') throw new TypeError('Please input a valid string argh object');
+    if (str1.length !== str2.length) throw new RangeError('str1 and str2 are not agagrams');
 
-//! 4)- [Group Anagrams](https://leetcode.com/problems/group-anagrams/)  
+    // this is a hash map which will be fast when looking up the values of the elements that are counted:
+    const countMap = new Map();
+
+    // Step1: count each character in str1:
+    // NOTE remember this snippet as it will count the char in the HashMap countMap():
+    for (const char of str1) {
+        countMap.set(char, (countMap.get(char) || 0) + 1);
+    }
+    // step2: count each charcater in str2:
+    // NOTE remember this snippet as it will count the char in the HashMap countMap():
+    for (const char of str2) {
+        if (!countMap.has(char)) return false;
+        countMap.set(char, countMap.get(char) - 1);
+        if (countMap.get(char) < 0) return false;
+    }
+    return true;
+}
+
+// if the length differ that means they cannot be anagrams:
+console.log(validAnagram('anagram', 'nagaram'));
+
+//! 4)- [Group Anagrams](https://leetcode.com/problems/group-anagrams/) 
+// Given an array of strings strs, group the anagrams together.You can return the answer in any order.
+// Input: strs = ["eat","tea","tan","ate","nat","bat"]
+// Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+//* the input argh is an collection of string elements: we thus need to group the anagrams together by type:
+const getGroupAnagram = (arr) => {
+    // strict validation of the arr object and its element values for the type given:
+    if (!Array.isArray(arr)) throw new TypeError('Input argh must be an array object!');
+    if (!arr.every(item => typeof item === 'string')) throw new Error('every element of the array object must ba string element type');
+
+    // the main function will use hashMap for faster lookup of the values:
+    const anagramGroups = new Map();
+
+    for (let word of arr) {
+        // sort the characters:
+        const sortedWord = word.split('').sort().join('');
+
+        // check if key exists in map:
+        if (!anagramGroups.has(sortedWord)) {
+            anagramGroups.set(sortedWord, []);
+        }
+
+        // push the word into its corresponding group:
+        anagramGroups.get(sortedWord).push(word);
+    }
+
+    // return the grouped anagrams as an array of arrays:
+    return Array.from(anagramGroups.values());
+
+}
+
+console.log(getGroupAnagram(["eat", "tea", "tan", "ate", "nat", "bat"]));
+
 //! 5)- [Valid Parentheses](https://leetcode.com/problems/valid-parentheses/)  
 //! 6)- [Generate Parentheses](https://leetcode.com/problems/generate-parentheses/)  
 //! 7)- [Valid Palindrome](https://leetcode.com/problems/valid-palindrome/)  
